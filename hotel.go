@@ -65,11 +65,62 @@ func AddRoom() {
 }
 
 func ReserveRoom() {
+	id := 0
+	nights := 0
+	personCount := 0
+	fmt.Println("Enter Room ID:")
+	fmt.Scanln(&id)
+	room := GetRoom(id)
+	if room == nil {
+		fmt.Println("Room not found.")
+		return
+	}
+	if room.Status {
+		fmt.Println("Room is already reserved.")
+		return
+	}
+	fmt.Println("Enter number of nights and person count:")
+	fmt.Scanln(&nights)
+	fmt.Scanln(&personCount)
+	roomPrice, tax, discountAmount, finalPrice := CalculateRoomPrice(*room, nights, personCount)
+	room.Status = true
+
+	fmt.Printf("Room Price: %f, tax: %d, Discount Amount: %f, Final Price: %f\n", roomPrice, tax, discountAmount, finalPrice)
 
 }
 
-func CalculateRoomPrice() {
+func GetRoom(id int) *Room {
+	for i := 0; i < len(Rooms); i++ {
+		if Rooms[i].ID == id {
+			return &Rooms[i]
+		}
+	}
+	return nil
+}
 
+func CalculateRoomPrice(room Room, nights int, personCount int) (roomPrice float64, finalPrice int, discountAmount float64, tax float64) {
+
+	if nights >= 7 && nights <= 15 {
+		discountAmount = float64(room.Price) * 0.10
+	} else if nights >= 16 {
+		discountAmount = float64(room.Price) * 0.15
+	} else {
+		discountAmount = 0
+	}
+
+	switch room.Type {
+	case "Single":
+		roomPrice = float64(nights*room.Price*personCount) * 1.0
+	case "Double":
+		roomPrice = float64(nights*room.Price*personCount) * 1.2
+	case "Suite":
+		roomPrice = float64(nights*room.Price*personCount) * 1.5
+	}
+
+	tax = 0.08 * roomPrice
+	finalPrice = int(roomPrice + tax - discountAmount*roomPrice)
+
+	return
 }
 
 // GenerateRooms creates a list of Room instances with predefined data.
